@@ -379,6 +379,7 @@
             sendEmail();
             selected.action = 'direction';
             sendEmail();
+            
           } else {
             selected.status = 'Paiement sur place';
             selected.action = 'confirmationFR';
@@ -386,6 +387,7 @@
             selected.action = 'direction';
             sendEmail();
           }
+          alerte('Réservation réussie! Vous recevrez les détails par email sous-peu. Vous pouvez quitter cette page');
         });
       });
 
