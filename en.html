@@ -231,11 +231,14 @@
   
 
   <script>
-    let events = [];
-    let dispo = {};
+    let events = JSON.parse(localStorage.getItem('dates'));
+    let dispo = JSON.parse(localStorage.getItem('dispo'));
+
     let selected = {participants : 10};
     let slot = null;
-    const url = 'https://script.google.com/macros/s/AKfycbwj7B43PNVrt6WLZQN5uAkgvCKwJ2OsufHiXDczbffEe3qCknxws95na-U6sWvvZzRs/exec?action=';
+
+    init();
+
 
     document.getElementById('close').addEventListener('click', function() {
       form.reset()
@@ -252,7 +255,7 @@
     participants_select.addEventListener('change', function() {
       selected.participants = this.value;
     })
-    events = JSON.parse(localStorage.getItem('dispo'));
+
     const event_date = new Date();
     event_date.setDate(event_date.getDate() + 3);
     const picker = new Pikaday({
@@ -261,45 +264,51 @@
       onSelect: function(date) {
         try {
           selected.date = date.toDateString();
+
+          date = date.toLocaleDateString('en-CA', {
+            timeZone: 'America/Toronto',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          });
+
           document.getElementById('slots').innerHTML = '';
           document.getElementById('heure-loader').style.display = 'inline-block';
-          fetch(url + 'jour&date=' + date)
-            .then(response => response.json())
-            .then(data => {
-              const slots = document.getElementById('slots');
-              const dispo = JSON.parse(data);
-              dispo.forEach(heure => {
-                const li = document.createElement('li');
-                li.innerText = heure;
-                li.addEventListener('click', () => {
-                  document.querySelectorAll('#slots li').forEach(el => {
-                    el.classList.remove('selected');
-                  });
-                  li.classList.add('selected');
-                  slot = li.innerText;
-                  selected.heure = li.innerText;
-                  // Ici tu peux aussi stocker la valeur sélectionnée
-                  console.log(selected);
-                });
-                slots.appendChild(li);
+          const slots = document.getElementById('slots');
+          dispo[date].forEach(heure => {
+            const li = document.createElement('li');
+            li.innerText = heure;
+            li.addEventListener('click', () => {
+              document.querySelectorAll('#slots li').forEach(el => {
+                el.classList.remove('selected');
               });
-              document.getElementById('heure-loader').style.display = 'none';
-            })
+              li.classList.add('selected');
+              slot = li.innerText;
+              selected.heure = li.innerText;
+              // Ici tu peux aussi stocker la valeur sélectionnée
+              console.log(selected);
+            });
+            slots.appendChild(li);
+          });
+          document.getElementById('heure-loader').style.display = 'none';
         } catch (error) {
           console.log(`Erreur : ${error.message} \n ${error.stack}`)
         }
       },
       events: events,
       disableDayFn: function(date) {
-        return !events.includes(date.toDateString());
+        const ymd = date.toLocaleDateString('en-CA', {
+          timeZone: 'America/Toronto',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        });
+        return !events.includes(ymd); // events est en ["YYYY-MM-DD"]
       },
       onOpen: open()
   
     });
-    window.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('datepicker').focus();
-      picker.show();
-    });
+    
 
       const form = document.querySelector('form');
       form.addEventListener('submit', function(e) {
@@ -344,11 +353,10 @@
         buttonPayer.innerText = 'Confirm';
 
         const annuler = document.createElement('button');
-        annuler.innerText = 'Cancel';
+        annuler.innerText = 'Retour';
         annuler.addEventListener('click', function() {
-          document.querySelector('form').reset();
           card.removeChild(div);
-          document.getElementById('start').style.display = 'inline-block';
+          form.style.display = 'inline-block';
         });
 
         select.appendChild(online);
@@ -381,7 +389,12 @@
         });
       });
 
-      
+      function init() {
+        window.addEventListener('DOMContentLoaded', () => {
+          document.getElementById('datepicker').focus();
+          picker.show();
+        });
+      }
 
       function open() {
         document.getElementById('datepicker').style.display = 'inline-block';
