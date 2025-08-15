@@ -370,23 +370,27 @@
         card.appendChild(div);
 
         document.getElementById('payer').addEventListener('click', function() {
-          const option = document.getElementById('paiement').value;
+          const option = document.getElementById('paiement').value; 
+          const card = document.getElementById('card');
           
           if (option === 'online') {
+            card.innerHTML = '<p>Treating your request</p>'
             selected.status = 'Facture square';
             selected.action = 'confirmationEN';
             invoice();
             sendEmail();
             selected.action = 'direction';
             sendEmail();
+            card.innerHTML = '<p>Sucess! The details of the reservation will be sent to you by email shortly. You can safely leave this page.</p>'
           } else {
+            card.innerHTML = '<p>Treating your request</p>'
             selected.status = 'Paiement sur place';
             selected.action = 'confirmationEN';
             sendEmail();
             selected.action = 'direction';
             sendEmail();
+            card.innerHTML = '<p>Sucess! The details of the reservation will be sent to you by email shortly. You can safely leave this page.</p>'
           }
-          alerte('Reservation sucessfull! The details of the reservation will be sent to you by email shortly. You can safely leave this page.');
         });
       });
 
