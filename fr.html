@@ -371,8 +371,9 @@
 
         document.getElementById('payer').addEventListener('click', function() {
           const option = document.getElementById('paiement').value;
+          const card = document.getElementById('card');
           
-          f (option === 'online') {
+          if (option === 'online') {
             card.innerHTML = '<p>Traitement de vôtre requête...</p>';
             selected.status = 'Facture square';
             selected.action = 'confirmationFR';
