@@ -231,83 +231,104 @@
   
 
   <script>
-    let events = JSON.parse(localStorage.getItem('dates'));
-    let dispo = JSON.parse(localStorage.getItem('dispo'));
+    let error_stack = [];
 
-    let selected = {participants : 10};
-    let slot = null;
+    try {
+      try {
+      let events = JSON.parse(localStorage.getItem('dates'));
+      } catch (e) {
+        throw new Error('Erreur dans le chargements des dates disponibles : ' + e.message);
+      }
 
-    init();
+      try {
+        let dispo = JSON.parse(localStorage.getItem('dispo'));
+      } catch (e) {
+        throw new Error('Erreur lors du chargements des heures disponibles : ' + e.message);
+      }
+      
+      
+
+      let selected = {participants : 10};
+      let slot = null;
+
+      init();
 
 
-    document.getElementById('close').addEventListener('click', function() {
-      form.reset()
-      window.location.href = 'index.html';
-    });
+      document.getElementById('close').addEventListener('click', function() {
+        form.reset()
+        window.location.href = 'index.html';
+      });
 
-    const participants_select = document.getElementById('participants');
-    for (let i = 10; i <= 50; i++) {
-      const option = document.createElement("option");
-      option.value = i;
-      option.textContent = i;
-      participants_select.appendChild(option);
-    }
-    participants_select.addEventListener('change', function() {
-      selected.participants = this.value;
-    })
+      const participants_select = document.getElementById('participants');
+      for (let i = 10; i <= 50; i++) {
+        const option = document.createElement("option");
+        option.value = i;
+        option.textContent = i;
+        participants_select.appendChild(option);
+      }
 
-    const event_date = new Date();
-    event_date.setDate(event_date.getDate() + 3);
-    const picker = new Pikaday({
-      field: document.getElementById('datepicker'),
-      format: 'YYYY-MM-DD',
-      onSelect: function(date) {
-        try {
-          selected.date = date.toDateString();
+      participants_select.addEventListener('change', function() {
+        selected.participants = this.value;
+      })
 
-          date = date.toLocaleDateString('en-CA', {
+      const event_date = new Date();
+      event_date.setDate(event_date.getDate() + 3);
+      const picker = new Pikaday({
+        field: document.getElementById('datepicker'),
+        format: 'YYYY-MM-DD',
+        onSelect: function(date) {
+          try {
+            selected.date = date.toDateString();
+
+            date = date.toLocaleDateString('en-CA', {
+              timeZone: 'America/Toronto',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit'
+            });
+
+            document.getElementById('slots').innerHTML = '';
+            document.getElementById('heure-loader').style.display = 'inline-block';
+            const slots = document.getElementById('slots');
+
+            dispo[date].forEach(heure => {
+
+              const li = document.createElement('li');
+              li.innerText = heure;
+              li.addEventListener('click', () => {
+
+                document.querySelectorAll('#slots li').forEach(el => {
+                  el.classList.remove('selected');
+                });
+
+                li.classList.add('selected');
+                slot = li.innerText;
+                selected.heure = li.innerText;
+              });
+            
+              slots.appendChild(li);
+            });
+            document.getElementById('heure-loader').style.display = 'none';
+          } catch (error) {
+            throw new Error('Erreur dans l\'affichage des heures disponibles : ' + error.message);
+          }
+        },
+        events: events,
+        disableDayFn: function(date) {
+          try {
+            const ymd = date.toLocaleDateString('en-CA', {
             timeZone: 'America/Toronto',
             year: 'numeric',
             month: '2-digit',
             day: '2-digit'
           });
-
-          document.getElementById('slots').innerHTML = '';
-          document.getElementById('heure-loader').style.display = 'inline-block';
-          const slots = document.getElementById('slots');
-          dispo[date].forEach(heure => {
-            const li = document.createElement('li');
-            li.innerText = heure;
-            li.addEventListener('click', () => {
-              document.querySelectorAll('#slots li').forEach(el => {
-                el.classList.remove('selected');
-              });
-              li.classList.add('selected');
-              slot = li.innerText;
-              selected.heure = li.innerText;
-              // Ici tu peux aussi stocker la valeur sélectionnée
-              console.log(selected);
-            });
-            slots.appendChild(li);
-          });
-          document.getElementById('heure-loader').style.display = 'none';
-        } catch (error) {
-          console.log(`Erreur : ${error.message} \n ${error.stack}`)
-        }
-      },
-      events: events,
-      disableDayFn: function(date) {
-        const ymd = date.toLocaleDateString('en-CA', {
-          timeZone: 'America/Toronto',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit'
-        });
-        return !events.includes(ymd); // events est en ["YYYY-MM-DD"]
-      },
-      onOpen: open()
-  
-    });
+          return !events.includes(ymd); // events est en ["YYYY-MM-DD"]
+          } catch (e) {
+            throw new Error('Erreur dans le traitements des jours non disponibles : ' + e.message);
+          }
+        },
+        onOpen: open()
+      });
     
 
       const form = document.querySelector('form');
@@ -320,12 +341,18 @@
           return;
         }
 
-        selected.group = document.getElementById('group').value.trim();
-        selected.prenom = document.getElementById('res-prenom').value.trim();
-        selected.nom = document.getElementById('res-nom').value.trim();
-        selected.name = selected.prenom + " " + selected.nom;
-        selected.email = document.getElementById('email').value.trim();
-        selected.phone_number = document.getElementById('phone').value.trim();
+        try {
+          selected.group = document.getElementById('group').value.trim();
+          selected.prenom = document.getElementById('res-prenom').value.trim();
+          selected.nom = document.getElementById('res-nom').value.trim();
+          selected.name = selected.prenom + " " + selected.nom;
+          selected.email = document.getElementById('email').value.trim();
+          selected.phone_number = document.getElementById('phone').value.trim();
+        } catch (e) {
+          throw new Error('Erreur lors de la récupération des données du clients : ' + e.message);
+        }
+
+        
 
         form.style.display = 'none';
 
@@ -370,29 +397,37 @@
         card.appendChild(div);
 
         document.getElementById('payer').addEventListener('click', function() {
-          const option = document.getElementById('paiement').value; 
+          const option = document.getElementById('paiement').value;
           const card = document.getElementById('card');
-          
+
           if (option === 'online') {
-            card.innerHTML = '<p>Treating your request</p>'
+            card.innerHTML = '<p>Treating your request...</p>';
             selected.status = 'Facture square';
             selected.action = 'confirmationEN';
             invoice();
             sendEmail();
             selected.action = 'direction';
             sendEmail();
-            card.innerHTML = '<p>Sucess! The details of the reservation will be sent to you by email shortly. You can safely leave this page.</p>'
+            card.innerHTML = '<p>Success! You will receive confirmations details shortly. You can safely leave this page.</p>';
           } else {
-            card.innerHTML = '<p>Treating your request</p>'
+            card.innerHTML = '<p>Treating your request...</p>';
             selected.status = 'Paiement sur place';
             selected.action = 'confirmationEN';
             sendEmail();
             selected.action = 'direction';
             sendEmail();
-            card.innerHTML = '<p>Sucess! The details of the reservation will be sent to you by email shortly. You can safely leave this page.</p>'
+            card.innerHTML = '<p>Success! You will receive confirmations details shortly. You can safely leave this page.</p>';
           }
         });
       });
+    } catch (error) {
+      error_stack.push({
+        error : error.message,
+        stack : error.stack
+      });
+    }
+
+    
 
       function init() {
         window.addEventListener('DOMContentLoaded', () => {
