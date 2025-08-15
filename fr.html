@@ -372,22 +372,24 @@
         document.getElementById('payer').addEventListener('click', function() {
           const option = document.getElementById('paiement').value;
           
-          if (option === 'online') {
+          f (option === 'online') {
+            card.innerHTML = '<p>Traitement de vôtre requête...</p>';
             selected.status = 'Facture square';
             selected.action = 'confirmationFR';
             invoice();
             sendEmail();
             selected.action = 'direction';
             sendEmail();
-            
+            card.innerHTML = '<p>Succès! Vous recevrez les détails par email sous-peu. Vous pouvez quitter cette page.</p>';
           } else {
+            card.innerHTML = '<p>Traitement de vôtre requête...</p>';
             selected.status = 'Paiement sur place';
             selected.action = 'confirmationFR';
             sendEmail();
             selected.action = 'direction';
             sendEmail();
+            card.innerHTML = '<p>Succès! Vous recevrez les détails par email sous-peu. Vous pouvez quitter cette page.</p>';
           }
-          alerte('Réservation réussie! Vous recevrez les détails par email sous-peu. Vous pouvez quitter cette page');
         });
       });
 
