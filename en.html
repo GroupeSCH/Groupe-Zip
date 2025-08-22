@@ -326,6 +326,16 @@
         });
       }
 
+      function updateDispo() {
+        const url = 'https://script.google.com/macros/s/AKfycbxhQEwmB3vY8P5d04Ef0GBrjU_W9Uhv3IhQ-4nMy1u6Iz9aNn0o26LgvrauqVJl78Wv/exec';
+        const body = new URLSearchParams(selected);
+        return fetch(url, {
+          method : 'POST',
+          headers : { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body : body.toString()
+        });
+      }
+
       picker = new Pikaday({
         field: document.getElementById('datepicker'),
         format: 'YYYY-MM-DD',
@@ -461,6 +471,7 @@
 
           selected.action = 'confirmationEN';
           const p1 = (option === 'online') ? invoice().then(() => sendEmail()) : sendEmail();
+          p1.then(() => updateDispo());
 
           Promise.resolve(p1)
             .then(() => {
